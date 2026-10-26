@@ -1,0 +1,89 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "LoGreedy: build",
+      "type": "shell",
+      "command": "./gradlew",
+      "windows": {
+        "command": ".\\gradlew.bat"
+      },
+      "args": [
+        "build"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [
+        "$javac"
+      ]
+    },
+    {
+      "label": "LoGreedy: legacy",
+      "type": "shell",
+      "command": "./gradlew",
+      "windows": {
+        "command": ".\\gradlew.bat"
+      },
+      "args": [
+        "legacy"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "problemMatcher": [
+        "$javac"
+      ]
+    },
+    {
+      "label": "LoGreedy: modern",
+      "type": "shell",
+      "command": "./gradlew",
+      "windows": {
+        "command": ".\\gradlew.bat"
+      },
+      "args": [
+        "modern"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "problemMatcher": [
+        "$javac"
+      ]
+    },
+    {
+      "label": "LoGreedy: clean",
+      "type": "shell",
+      "command": "./gradlew",
+      "windows": {
+        "command": ".\\gradlew.bat"
+      },
+      "args": [
+        "clean"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "problemMatcher": [
+        "$javac"
+      ]
+    }
+  ]
+}

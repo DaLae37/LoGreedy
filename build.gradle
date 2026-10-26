@@ -1,0 +1,177 @@
+plugins {
+    id 'base'
+}
+
+if (JavaVersion.current() != JavaVersion.VERSION_25) {
+    throw new GradleException('Build LoGreedy with JDK 25 (set JAVA_HOME).')
+}
+
+group = 'com.dalae37.logreedy'
+def buildVersion = version.toString()
+
+subprojects {
+    apply plugin: 'java'
+    group = rootProject.group
+    version = rootProject.version
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(25)
+        }
+    }
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.release = project.name.endsWith('jdk21') ? 21 : 8
+    }
+    tasks.withType(AbstractArchiveTask).configureEach {
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
+    }
+}
+
+project(':logreedy-core') {
+    def versionResources = layout.buildDirectory.dir('generated/version')
+    def generateVersion = tasks.register('generateVersion') {
+        inputs.property('version', project.version)
+        outputs.dir(versionResources)
+        doLast {
+            def target = versionResources.get().file('logreedy-version.properties').asFile
+            target.parentFile.mkdirs()
+            target.setText("version=${buildVersion}\n", 'UTF-8')
+        }
+    }
+    sourceSets.main.resources.srcDir(generateVersion)
+
+    sourceSets {
+        cliTest {
+            compileClasspath += sourceSets.main.output
+            runtimeClasspath += sourceSets.main.output
+        }
+    }
+    tasks.register('cliTest', JavaExec) {
+        dependsOn cliTestClasses
+        classpath = sourceSets.cliTest.runtimeClasspath
+        mainClass = 'com.dalae37.logreedy.CliTest'
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(25)
+        }
+    }
+    repositories { mavenCentral() }
+    dependencies {
+        testImplementation 'junit:junit:4.13.2'
+        testImplementation 'com.google.code.gson:gson:2.13.2'
+    }
+    tasks.named('compileTestJava') { options.release = 25 }
+    tasks.named('test', Test) {
+        useJUnit()
+        dependsOn ':logreedy-runtime-jdk8:jar', ':logreedy-runtime-jdk21:jar'
+        systemProperty 'legacy.jar', project(':logreedy-runtime-jdk8').layout.buildDirectory.file('libs/LoGreedy-jdk8.jar').get().asFile.absolutePath
+        systemProperty 'modern.jar', project(':logreedy-runtime-jdk21').layout.buildDirectory.file('libs/LoGreedy-jdk21.jar').get().asFile.absolutePath
+        systemProperty 'test.classpath', sourceSets.test.runtimeClasspath.asPath
+        environment 'LOGREEDY_TEST_STORE_PASSWORD', 'test-pass'
+        maxHeapSize = '256m'
+        testLogging { events 'passed', 'failed', 'skipped' }
+    }
+    tasks.named('check') { dependsOn 'cliTest' }
+}
+
+['jdk8', 'jdk21'].each { runtime ->
+    project(":logreedy-runtime-${runtime}") {
+        dependencies {
+            implementation project(':logreedy-core')
+        }
+        tasks.named('jar', Jar) {
+            dependsOn project(':logreedy-core').tasks.named('jar')
+            archiveFileName = "LoGreedy-${runtime}.jar"
+            from project(':logreedy-core').sourceSets.main.output
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+            manifest {
+                attributes('Main-Class': "com.dalae37.logreedy.runtime.${runtime}.Main",
+                        'Implementation-Title': 'LoGreedy',
+                        'Implementation-Version': project.version)
+            }
+        }
+    }
+}
+
+tasks.register('legacy', Sync) {
+    group = 'build'
+    description = 'Build the Java 8 executable and configuration.'
+    dependsOn ':logreedy-runtime-jdk8:jar'
+    from project(':logreedy-runtime-jdk8').tasks.named('jar')
+    from 'config/LoGreedy.properties'
+    into layout.buildDirectory.dir('distributions/legacy')
+}
+
+tasks.register('modern', Sync) {
+    group = 'build'
+    description = 'Build the Java 21 executable and configuration.'
+    dependsOn ':logreedy-runtime-jdk21:jar'
+    from project(':logreedy-runtime-jdk21').tasks.named('jar')
+    from 'config/LoGreedy.properties'
+    into layout.buildDirectory.dir('distributions/modern')
+}
+
+tasks.register('dist', Sync) {
+    group = 'build'
+    description = 'Collect both executables and configuration.'
+    dependsOn 'legacy', 'modern'
+    from project(':logreedy-runtime-jdk8').tasks.named('jar')
+    from project(':logreedy-runtime-jdk21').tasks.named('jar')
+    from 'config/LoGreedy.properties'
+    into layout.buildDirectory.dir('distributions/all')
+}
+
+def verificationJava = project(':logreedy-core').javaToolchains.launcherFor {
+    languageVersion = JavaLanguageVersion.of(25)
+}
+def distributionDirectory = layout.buildDirectory.dir('distributions/all')
+
+tasks.register('verifyArtifacts') {
+    group = 'verification'
+    description = 'Verify every class version and run the packaged CLI on JDK 25.'
+    dependsOn 'dist'
+    doLast {
+        def javaCommand = verificationJava.get().executablePath.asFile.absolutePath
+        ['jdk8': 52, 'jdk21': 65].each { runtime, runtimeMajor ->
+            def jarFile = distributionDirectory.get().file("LoGreedy-${runtime}.jar").asFile
+            int classCount = 0
+            new java.util.jar.JarFile(jarFile).withCloseable { archive ->
+                assert archive.manifest.mainAttributes.getValue('Implementation-Version') == buildVersion
+                assert archive.getJarEntry(archive.manifest.mainAttributes.getValue('Main-Class').replace('.', '/') + '.class') != null
+                archive.entries().each { entry ->
+                    if (entry.name.endsWith('.class')) {
+                        assert entry.name.startsWith('com/dalae37/logreedy/') : "Unreviewed runtime dependency: ${entry.name}"
+                        archive.getInputStream(entry).withCloseable { stream ->
+                            def data = new DataInputStream(stream)
+                            assert data.readInt() == (int) 0xCAFEBABE
+                            data.readUnsignedShort()
+                            int expected = entry.name.startsWith('com/dalae37/logreedy/runtime/') ? runtimeMajor : 52
+                            assert data.readUnsignedShort() == expected : "Wrong class version: ${entry.name}"
+                            classCount++
+                        }
+                    }
+                }
+            }
+            assert classCount > 1
+            ['--version', '--help', '--invalid'].each { argument ->
+                def command = [javaCommand, '-jar', jarFile.absolutePath]
+                if (argument != null) { command.add(argument) }
+                def process = new ProcessBuilder(command).redirectErrorStream(true).start()
+                def output = process.inputStream.getText('UTF-8')
+                int status = process.waitFor()
+                assert status == (argument == '--invalid' ? 2 : 0) : output
+                if (argument == '--version') { assert output.trim() == "LoGreedy ${buildVersion}" }
+                else if (argument == '--invalid') { assert output.contains('Unknown arguments') }
+                else { assert output.contains('--help') && output.contains('--config') }
+            }
+            logger.lifecycle("Verified ${jarFile.name}: ${classCount} classes; core=52, runtime=${runtimeMajor}; 3 CLI cases")
+        }
+    }
+}
+
+tasks.named('assemble') { dependsOn 'dist' }
+tasks.named('check') {
+    dependsOn subprojects.collect { it.tasks.named('check') }
+    dependsOn 'verifyArtifacts'
+}

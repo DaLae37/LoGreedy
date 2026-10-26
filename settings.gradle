@@ -1,0 +1,3 @@
+rootProject.name = 'LoGreedy'
+
+include 'logreedy-core', 'logreedy-runtime-jdk8', 'logreedy-runtime-jdk21'
