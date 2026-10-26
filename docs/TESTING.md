@@ -68,7 +68,7 @@ Windows VS Code 설정은 JSON·실제 모듈/Main·Task 연결을 정적으로 
 
 ## 3단계 CI/CD 검증
 
-추가 Workflow는 Ubuntu/Windows 각각에서 같은 Gradle build Task와 전체 JUnit을 실행한다. Gradle의 실행 JVM은 항상 JDK 25다. Windows에서는 Process.destroy가 강제 종료이므로 패키징 하위 프로세스의 WAL 재생·잠금 해제를 검증하고, 정상 종료는 기존 in-process Agent.Stop 검사로 별도 확인한다. Sparse File 생성은 NIO CREATE_NEW/WRITE/SPARSE를 사용한다. 테스트 Timeout 여유와 손상 바이트 XOR도 실행 환경의 변동성을 고려해 보완했다. Agent 처리 코드는 3단계에서 변경하지 않았다.
+추가 Workflow는 Ubuntu/Windows 각각에서 같은 Gradle build Task와 전체 JUnit을 실행한다. Gradle의 실행 JVM은 항상 JDK 25다. Windows에서는 Process.destroy가 강제 종료이므로 패키징 하위 프로세스의 WAL 재생·잠금 해제를 검증하고, 정상 종료는 기존 in-process Agent.Stop 검사로 별도 확인한다. Sparse File 생성은 NIO CREATE_NEW/WRITE/SPARSE를 사용한다. 테스트 Timeout 여유와 손상 바이트 XOR도 실행 환경의 변동성을 고려해 보완했다. 기존 Agent 기능을 유지하며 Windows CI에서 드러난 Glob 문자열의 InvalidPathException만 수정했다. 탐색 루트만 Path로 만들고 Glob은 Matcher로 분리했다.
 
 ```shell
 python -m unittest discover -s scripts/tests -v
@@ -79,6 +79,6 @@ python scripts/artifacts.py
 
 Runtime 스크립트는 LOGREEDY_JAVA8_HOME, LOGREEDY_JAVA11_HOME, LOGREEDY_JAVA17_HOME, LOGREEDY_JAVA21_HOME, LOGREEDY_JAVA25_HOME을 사용한다. 25는 JAVA_HOME으로 대체할 수 있다. 기본 요구값은 25이며 CI는 다섯 JVM을 모두 요구한다. CLI 3개와 한국어·멀티라인·Append·고정 Label·시간 순서·Mock 전송·종료 후 WAL 복구를 각 조합에서 확인한다.
 
-이번 로컬 추가 검증: Temurin JRE 11.0.29+7, 17.0.17+10을 공식 체크섬으로 확인했다. 기존 8u472/21.0.12.1/25.0.2와 함께 Legacy 5개, Modern 2개 조합이 통과했다. JDK 25 전체 build는 JUnit 31개(실패/오류/skip 0), CLI 5개, JAR별 실행 3개 및 모든 클래스 버전 검사를 통과했다. Python Release 자동화 16개가 통과했고 actionlint 1.7.12, Workflow YAML 정책·Dependabot 일정, 공식 Action Tag/전체 SHA 대조와 실제 Asset 체크섬도 확인했다.
+이번 로컬 추가 검증: Temurin JRE 11.0.29+7, 17.0.17+10을 공식 체크섬으로 확인했다. 기존 8u472/21.0.12.1/25.0.2와 함께 Legacy 5개, Modern 2개 조합이 통과했다. Windows Glob 회귀 검사를 추가한 JDK 25 전체 build는 JUnit 32개(실패/오류/skip 0), CLI 5개, JAR별 실행 3개 및 모든 클래스 버전 검사를 통과했다. Python Release 자동화 16개가 통과했고 actionlint 1.7.12, Workflow YAML 정책·Dependabot 일정, 공식 Action Tag/전체 SHA 대조와 실제 Asset 체크섬도 확인했다.
 
 Release 검사는 메모리 API로 신규 발행·같은 버전 skip·Tag만 존재·중단된 Draft·불일치 Asset·잘못된 버전·이동된 Tag·미완료 공개 Release·PR/수동 실행 차단·인증 헤더 없는 다운로드 리다이렉트를 검증한다. 실제 GitHub에 Tag/Release를 만들지 않는다. GitHub-hosted Ubuntu/Windows의 실행 결과는 별도이며, 결과를 얻기 전까지 미검증으로 보고한다. API/Push 접근이 막힌 경우 PR 생성 및 GitHub CI 결과도 미완료로 기록한다.

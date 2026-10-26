@@ -194,4 +194,17 @@ public final class TailerTest {
             }
         }
     }
+
+    @Test public void GlobExpressionsNeverBecomeInvalidWindowsPaths() throws Exception {
+        try (Fixture fixture = new Fixture()) {
+            fixture.properties.setProperty("source.app.paths", "logs/*.log|logs/**/deep?.txt|logs/{a,b}.out");
+            AgentConfig.Source source = fixture.Config().sources.get(0);
+            assertEquals(3, source.patterns.size());
+            for (AgentConfig.Glob pattern : source.patterns) { assertEquals(fixture.logs, pattern.root); }
+            assertTrue(source.patterns.get(0).matcher.matches(fixture.logs.resolve("app.log")));
+            assertFalse(source.patterns.get(0).matcher.matches(fixture.logs.resolve("app.txt")));
+            assertTrue(source.patterns.get(1).matcher.matches(fixture.logs.resolve("sub/deep1.txt")));
+            assertTrue(source.patterns.get(2).matcher.matches(fixture.logs.resolve("a.out")));
+        }
+    }
 }

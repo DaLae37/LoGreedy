@@ -22,7 +22,7 @@
 setup-java로 Temurin 8, 11, 17, 21을 준비한 뒤 **마지막에 25**를 활성화한다. Gradle은 항상 JDK 25에서 실행한다. VS Code의 `LoGreedy: build`와 같은 Wrapper `build` Task를 사용하며 CI에서는 깨끗한 상태를 위해 `clean`을 먼저 수행한다.
 
 1. Checkout과 Gradle Wrapper 공식 체크섬 검증
-2. `./gradlew clean build --no-daemon`: 기존 JUnit 31개, 별도 CLI 5개, 패키징·JAR별 CLI·클래스 버전 검사
+2. `./gradlew clean build --no-daemon`: 기존 검사와 Windows Glob 회귀 JUnit 32개, 별도 CLI 5개, 패키징·JAR별 CLI·클래스 버전 검사
 3. `python -m unittest discover -s scripts/tests -v`: Release 상태 전이·충돌·중단 복구·체크섬·게시 조건 검사. 실제 API에 쓰지 않음
 4. `python scripts/verify-runtime.py --require-versions 8,11,17,21,25`: Legacy 8/11/17/21/25, Modern 21/25에서 CLI 및 Append·멀티라인 → HTTP Mock 전송, 순서, WAL 복구
 5. `python scripts/artifacts.py --prepare`: Manifest/버전/실행 Main·클래스 버전·외부 런타임 의존성 경계 검증, 실제 세 파일로 SHA256SUMS 생성

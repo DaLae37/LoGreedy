@@ -104,10 +104,42 @@ public final class AgentConfig {
         return value;
     }
 
+    /** Glob expressions are not filesystem paths: Windows rejects '*' and '?' in Paths. */
+    public static final class Glob {
+        public final Path root;
+        public final PathMatcher matcher;
+        Glob(Path base, String value) {
+            String expression = value.replace('\\', '/');
+            if (expression.isEmpty()) { throw new IllegalArgumentException("Empty source path"); }
+            int first = expression.length();
+            for (char marker : new char[] {'*', '?', '[', '{'}) {
+                int found = expression.indexOf(marker);
+                if (found >= 0) { first = Math.min(first, found); }
+            }
+            String absolute;
+            if (first == expression.length()) {
+                Path literal = base.resolve(expression).toAbsolutePath().normalize();
+                root = literal.getParent(); absolute = literal.toString().replace('\\', '/');
+            } else {
+                int slash = expression.lastIndexOf('/', first);
+                String prefix = slash < 0 ? "" : expression.substring(0, slash + 1);
+                String suffix = expression.substring(slash + 1);
+                for (String segment : suffix.split("/")) {
+                    if (segment.equals(".") || segment.equals("..")) { throw new IllegalArgumentException("Dot segments after a glob are not supported"); }
+                }
+                root = base.resolve(prefix).toAbsolutePath().normalize();
+                String directory = root.toString().replace('\\', '/');
+                absolute = directory + (directory.endsWith("/") ? "" : "/") + suffix;
+            }
+            if (root == null) { throw new IllegalArgumentException("Source must identify a file/glob"); }
+            matcher = base.getFileSystem().getPathMatcher("glob:" + absolute);
+        }
+    }
+
     public final class Source {
         public final String name, application, initial;
         public final Charset charset;
-        public final List<Path> patterns = new ArrayList<>();
+        public final List<Glob> patterns = new ArrayList<>();
         public final Pattern multiline, extract;
         public final int timeoutMs;
         Source(String name) {
@@ -119,7 +151,7 @@ public final class AgentConfig {
             charset = Charset.forName(Text(prefix + "charset", "UTF-8"));
             String paths = Text(prefix + "paths", "");
             if (paths.isEmpty()) { throw new IllegalArgumentException(prefix + "paths is required"); }
-            for (String path : paths.split("\\|")) { patterns.add(Resolve(path.trim())); }
+            for (String path : paths.split("\\|")) { patterns.add(new Glob(base, path.trim())); }
             String start = Text(prefix + "multiline.start", "");
             multiline = start.isEmpty() ? null : Pattern.compile(start);
             String regex = Text(prefix + "extract.regex", "");

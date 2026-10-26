@@ -110,15 +110,7 @@ public final class Tailer {
     private LinkedHashSet<Path> Discover(AgentConfig.Source source) throws IOException {
         LinkedHashSet<Path> result = new LinkedHashSet<>();
         Set<Path> roots = new LinkedHashSet<>();
-        for (Path pattern : source.patterns) {
-            Path root = pattern.getRoot();
-            for (Path part : pattern) {
-                if (HasGlob(part.toString())) { break; }
-                root = root.resolve(part);
-            }
-            if (root.equals(pattern)) { root = pattern.getParent(); }
-            roots.add(root);
-        }
+        for (AgentConfig.Glob pattern : source.patterns) { roots.add(pattern.root); }
         final int[] visited = {0};
         for (Path root : roots) {
             if (!Files.isDirectory(root)) { continue; }
@@ -141,12 +133,9 @@ public final class Tailer {
         List<Path> ordered = new ArrayList<>(result); Collections.sort(ordered);
         return new LinkedHashSet<>(ordered);
     }
-    private static boolean HasGlob(String value) {
-        return value.indexOf('*') >= 0 || value.indexOf('?') >= 0 || value.indexOf('[') >= 0 || value.indexOf('{') >= 0;
-    }
     private boolean Matches(AgentConfig.Source source, Path path) {
-        for (Path pattern : source.patterns) {
-            if (path.getFileSystem().getPathMatcher("glob:" + pattern.toString().replace('\\', '/')).matches(path)) { return true; }
+        for (AgentConfig.Glob pattern : source.patterns) {
+            if (pattern.matcher.matches(path)) { return true; }
         }
         return false;
     }
