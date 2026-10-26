@@ -77,6 +77,9 @@ jobs:
           LOGREEDY_JAVA8_HOME: ${{ steps.java8.outputs.path }}
           LOGREEDY_JAVA21_HOME: ${{ steps.java21.outputs.path }}
         run: ./gradlew clean build --no-daemon
+      - name: Report JUnit results
+        if: always()
+        run: python scripts/report-tests.py
       - name: Test release automation
         run: python -m unittest discover -s scripts/tests -v
       - name: Verify runtime compatibility

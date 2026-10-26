@@ -26,7 +26,7 @@ setup-java로 Temurin 8, 11, 17, 21을 준비한 뒤 **마지막에 25**를 활�
 3. `python -m unittest discover -s scripts/tests -v`: Release 상태 전이·충돌·중단 복구·체크섬·게시 조건 검사. 실제 API에 쓰지 않음
 4. `python scripts/verify-runtime.py --require-versions 8,11,17,21,25`: Legacy 8/11/17/21/25, Modern 21/25에서 CLI 및 Append·멀티라인 → HTTP Mock 전송, 순서, WAL 복구
 5. `python scripts/artifacts.py --prepare`: Manifest/버전/실행 Main·클래스 버전·외부 런타임 의존성 경계 검증, 실제 세 파일로 SHA256SUMS 생성
-6. OS별 배포 Artifact 30일, 테스트 결과 Artifact 14일 보관
+6. JUnit 실패는 Job Annotation에 이름·원인(제한된 Stack)과 요약을 남기며, OS별 배포 Artifact 30일·테스트 결과 Artifact 14일 보관
 
 현재 배포 JAR는 외부 런타임 의존성이 없다. 검증기는 `com/dalae37/logreedy` 밖의 클래스를 거부한다. 향후 의존성을 넣으면 Java 8 API·클래스 버전·배포 패키징을 검토하고 실제 Runtime 검사까지 통과시키도록 검증 정책을 명시적으로 변경해야 한다. 테스트 전용 JUnit/Gson은 배포하지 않는다.
 
