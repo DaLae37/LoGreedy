@@ -24,7 +24,7 @@
 * **기본 패키지:** `com.dalae37.logreedy`
 * **외부 실행 의존성:** 없음. JUnit/Gson은 테스트에서만 사용
 
-Windows, Linux, AIX, Solaris, HP-UX를 지원 목표로 Java API만 사용하며 JNI/JNA를 사용하지 않습니다. 실제 검증은 **Debian 13 Linux x86_64**에서 수행했습니다. 다른 OS의 파일 시스템·잠금·원자적 Rename 동작은 아직 실기 검증하지 않았습니다.
+Windows, Linux, AIX, Solaris, HP-UX를 지원 목표로 Java API만 사용하며 JNI/JNA를 사용하지 않습니다. 실제 검증은 **Debian 13 Linux x86_64**와 GitHub-hosted **Ubuntu·Windows Runner**에서 수행했습니다. AIX/Solaris/HP-UX, Windows 서비스·VS Code UI와 실제 WAS 운영 부하는 미검증입니다.
 
 ## Java 8 / 21 구분
 
@@ -34,7 +34,7 @@ Windows, Linux, AIX, Solaris, HP-UX를 지원 목표로 Java API만 사용하며
 | Legacy | `--release 8` | 52 | `LoGreedy-jdk8.jar`, 제한된 Platform Thread Executor |
 | Modern | `--release 21` | 65 | `LoGreedy-jdk21.jar`, Virtual Thread와 Semaphore |
 
-Modern JAR의 Core 클래스는 52입니다. 한 전송 작업자가 순서를 유지하므로 실제 전송 동시성은 1이며 `send.concurrency`는 Executor 상한입니다. JDK 25에서도 Modern JAR를 실행할 수 있습니다. 실제 검증 JVM은 Temurin 8u472, Debian OpenJDK 21.0.12.1, Oracle JDK 25.0.2입니다.
+Modern JAR의 Core 클래스는 52입니다. 한 전송 작업자가 순서를 유지하므로 실제 전송 동시성은 1이며 `send.concurrency`는 Executor 상한입니다. JDK 25에서도 Modern JAR를 실행할 수 있습니다. 로컬 검증 JVM은 Temurin 8u472·11.0.29·17.0.17, Debian OpenJDK 21.0.12.1, Oracle JDK 25.0.2이며 CI는 각 Major의 Temurin을 사용합니다.
 
 ## 빌드 및 테스트
 

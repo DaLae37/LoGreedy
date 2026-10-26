@@ -48,7 +48,7 @@ Windows에서는 같은 환경 변수와 `gradlew.bat`를 사용한다. 두 변�
 
 Faults 인터페이스는 테스트 생성자에만 주입한다. 운영 Properties로 장애나 강제 종료 Hook을 활성화할 수 없다. 테스트의 ENOSPC는 IOException 주입이며 호스트 디스크를 실제로 가득 채우지 않았다. Sparse File은 논리 크기 10GB 이상이며 10GB를 실제 저장하거나 읽는 부하 검사가 아니다.
 
-## 이번 실행 환경과 결과
+## 2단계 로컬 실행 환경과 결과
 
 2026-10-26, Debian GNU/Linux 13 (trixie), Linux x86_64에서 실행했다.
 
@@ -60,7 +60,7 @@ Faults 인터페이스는 테스트 생성자에만 주입한다. 운영 Propert
 
 JDK/JRE와 Wrapper는 공식 배포본 SHA-256을 확인한 후 사용했다. JDK 25만 선택하도록 Toolchain 자동 탐색을 끈 빌드도 검증한다. 클래스 버전은 JAR 전체를 검사하며 Legacy의 모든 클래스는 52, Modern의 Core는 52·Runtime은 65다.
 
-이번 최종 실행은 **JUnit 31개 통과, 실패 0, 오류 0, skipped 0**, 별도 CLI 5개와 JAR별 실행 3개 통과다. `git diff --check`, README 마지막 Codex 문구, LICENSE 보존, VS Code 모듈/Main 연결도 확인했다.
+2단계 최종 실행은 **JUnit 31개 통과, 실패 0, 오류 0, skipped 0**, 별도 CLI 5개와 JAR별 실행 3개 통과다. `git diff --check`, README 마지막 Codex 문구, LICENSE 보존, VS Code 모듈/Main 연결도 확인했다.
 
 최종 실행의 JUnit 수·실패·skipped는 `logreedy-core/build/test-results/test/TEST-*.xml`에서 확인하고, HTML은 `logreedy-core/build/reports/tests/test/index.html`에 생성된다. 결과 파일은 빌드 산출물이므로 커밋하지 않는다.
 
@@ -82,3 +82,9 @@ Runtime 스크립트는 LOGREEDY_JAVA8_HOME, LOGREEDY_JAVA11_HOME, LOGREEDY_JAVA
 이번 로컬 추가 검증: Temurin JRE 11.0.29+7, 17.0.17+10을 공식 체크섬으로 확인했다. 기존 8u472/21.0.12.1/25.0.2와 함께 Legacy 5개, Modern 2개 조합이 통과했다. Windows Glob 회귀 검사를 추가한 JDK 25 전체 build는 JUnit 32개(실패/오류/skip 0), CLI 5개, JAR별 실행 3개 및 모든 클래스 버전 검사를 통과했다. Python Release 자동화 16개가 통과했고 actionlint 1.7.12, Workflow YAML 정책·Dependabot 일정, 공식 Action Tag/전체 SHA 대조와 실제 Asset 체크섬도 확인했다.
 
 Release 검사는 메모리 API로 신규 발행·같은 버전 skip·Tag만 존재·중단된 Draft·불일치 Asset·잘못된 버전·이동된 Tag·미완료 공개 Release·PR/수동 실행 차단·인증 헤더 없는 다운로드 리다이렉트를 검증한다. 실제 GitHub에 Tag/Release를 만들지 않는다. GitHub-hosted Ubuntu/Windows의 실행 결과는 별도이며, 결과를 얻기 전까지 미검증으로 보고한다. API/Push 접근이 막힌 경우 PR 생성 및 GitHub CI 결과도 미완료로 기록한다.
+
+### 실제 GitHub 결과
+
+[Run 40345305690](https://github.com/DaLae37/LoGreedy/actions/runs/40345305690)에서 `verify (ubuntu-latest)`와 `verify (windows-latest)`가 모두 성공했다. PR의 `publish`는 두 검증 성공 후에도 skipped였다. 대상 개발 커밋은 `51045a4`, PR 합성 Merge SHA는 `db49c71256ea7d9c8b9ede3a2762ab9d469dcac0`다. 첫 Windows 실행의 Glob InvalidPathException을 수정하고 회귀 검사를 추가한 결과다.
+
+각 Runner에서 JDK 25 clean build·JUnit 32개·Python 배포 검사·7개 Runtime 조합·배포 파일 생성/검증·Artifact 업로드 Step이 성공했다. Artifact 이름에는 PR의 합성 Merge SHA가 사용되며 main Push에서는 실제 main SHA가 사용된다. Artifact 목록과 크기·보관 상태는 API로 확인했다. 이 클라우드에서 Azure Actions Artifact 저장소로 직접 다운로드하는 요청은 네트워크 제한으로 차단되어, 클라우드로 다시 받아 두 OS의 파일을 비교하는 추가 검사는 하지 못했다. CI 내부의 체크섬 생성·검증 성공과 구분한다. 실제 GitHub Tag/Release 발행은 사용자 병합 후의 검증 대상이다.

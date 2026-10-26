@@ -120,4 +120,4 @@ PR의 두 OS 검증 결과와 변경 내용을 확인한 뒤 사용자가 병합
 
 로컬 Debian 13 Linux x86_64에서 JDK 25 전체 빌드·기존 JUnit·Python 배포 상태 전이 검사·actionlint/YAML/Action SHA 검증을 수행한다. Java 8/11/17/21/25의 실제 Legacy 실행과 Java 21/25 Modern 실행도 로컬 Mock으로 확인한다. 상세 실행 버전과 결과는 [TESTING.md](TESTING.md)를 참고한다.
 
-GitHub-hosted Ubuntu/Windows 실행, 저장소 보호·보안 설정, 실제 GitHub Release API 쓰기는 GitHub 결과가 나오기 전까지 미검증이다. 모의 API의 성공을 실제 Release 발행 성공으로 보고하지 않는다.
+[Run 40345305690](https://github.com/DaLae37/LoGreedy/actions/runs/40345305690)에서 Ubuntu/Windows verify가 모두 성공하고 PR publish가 skipped임을 확인했다. Windows Glob 경로 결함은 이 검증 과정에서 수정했다. 배포 Artifact 두 개와 테스트 Artifact 두 개의 업로드도 확인했다. 클라우드로 Artifact를 직접 재다운로드하는 추가 비교는 Azure 저장소 네트워크 제한으로 미검증이다. 실제 Tag/Release API 쓰기와 저장소 보호·보안 설정은 별도이며, 모의 API의 성공을 실제 Release 발행 성공으로 보고하지 않는다. Repository의 Allow auto-merge=false는 확인했지만 보안 업데이트·브랜치 보호 설정 조회는 Integration 권한 403이므로 관리자가 Settings에서 확인해야 한다.

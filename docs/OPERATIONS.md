@@ -66,6 +66,6 @@ java -jar LoGreedy-jdk21.jar --config /opt/logreedy/LoGreedy.properties
 
 ## 지원 목표와 검증 한계
 
-실제 검증 OS는 Debian 13 Linux x86_64다. Windows, AIX, Solaris, HP-UX는 Java API로 고려한 지원 목표다. 각 OS에서 사용 가능한 Java 8/21 배포판, EUC-KR/MS949 Charset, FileLock, fileKey null, Atomic Move, Directory fsync 정책을 배치 전에 확인해야 한다. Windows 배치 실행·NTFS 실기, AIX/Solaris/HP-UX 실기, 실제 Loki·WAS 연동 부하 및 실제 전원 차단은 검증하지 않았다.
+실제 검증 OS는 Debian 13 Linux x86_64와 GitHub-hosted Ubuntu/Windows다. AIX, Solaris, HP-UX는 Java API로 고려한 지원 목표다. 각 OS에서 사용 가능한 Java 8/21 배포판, EUC-KR/MS949 Charset, FileLock, fileKey null, Atomic Move, Directory fsync 정책을 배치 전에 확인해야 한다. Windows 배치·서비스 실행, AIX/Solaris/HP-UX 실기, 실제 NTFS/WAS/Loki 운영 부하 및 전원 차단은 검증하지 않았다.
 
 원본 삭제, Copytruncate 경합, 동일 지문 충돌, 탐색 범위 밖 이동, 한도 초과, 정리된 세대의 늦은 쓰기는 [아키텍처의 복구 한계](ARCHITECTURE.md)를 따른다. 상태형 Charset/BOM 자동 판별 인코딩의 중간 Offset 재시작도 검증·보장 범위가 아니다. 운영에서는 UTF-8, EUC-KR, MS949 또는 명시적 Endian의 상태 없는 Charset을 사용한다.

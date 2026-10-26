@@ -32,7 +32,7 @@ Decoder는 Buffer 끝의 불완전한 문자를 다음 읽기에 넘긴다. LF�
 
 경로를 우선 확인한 뒤 같은 Source의 탐색 후보에서 이전 세대를 찾는다. `BasicFileAttributes.fileKey()`, 경로, 크기, 수정 시각, 최초 최대 256바이트 지문, Commit/Read Offset 직전 최대 256바이트 지문을 조합한다. 크기 감소나 제한 지문 변경은 새 세대로 읽는다. fileKey가 null이면 경로·지문·크기·수정 시각에 의존한다. 원본과 완전히 같은 복사본을 구분하지 못할 수 있다.
 
-파일 핸들은 제한된 읽기 동안만 열고, 이벤트를 임시로 모은 뒤 닫고 나서 Queue/Checkpoint fsync를 수행한다. 한 읽기 묶음은 약 128개 이벤트 또는 파일당 읽기 한도까지이며 남은 Buffer는 다음 Poll에 이어 처리한다. Windows NTFS에서 장기간 열린 핸들이 Rename/Delete를 막는 것을 피한다. 짧은 읽기 중에도 Windows의 공유 모드나 외부 프로그램 정책 때문에 Rename이 일시 실패할 수 있다. 해당 OS 실기 검증은 아직 하지 않았다. Source에 배타 잠금이나 쓰기 핸들을 사용하지 않는다.
+파일 핸들은 제한된 읽기 동안만 열고, 이벤트를 임시로 모은 뒤 닫고 나서 Queue/Checkpoint fsync를 수행한다. 한 읽기 묶음은 약 128개 이벤트 또는 파일당 읽기 한도까지이며 남은 Buffer는 다음 Poll에 이어 처리한다. Windows NTFS에서 장기간 열린 핸들이 Rename/Delete를 막는 것을 피한다. 짧은 읽기 중에도 Windows의 공유 모드나 외부 프로그램 정책 때문에 Rename이 일시 실패할 수 있다. GitHub-hosted Windows에서 파일·Queue·로테이션 검사를 통과했으며 실제 WAS와 동시 Rename 운영 부하는 미검증이다. Source에 배타 잠금이나 쓰기 핸들을 사용하지 않는다.
 
 Rename된 파일이 Glob에 맞지 않아도 같은 탐색 범위의 후보에서 찾아 지연 Append를 읽는다. 더 이상 Glob에 맞지 않는 완료 파일 또는 사라진 세대는 유휴 `file.retire.ms` 후 정리한다. 정리된 세대에 뒤늦게 쓰거나 탐색 범위 밖으로 이동한 파일은 추적할 수 없다. Glob에 맞는 파일 수가 `files.max`를 넘으면 발견을 보류하고 진단을 남긴다. Source별 탐색은 깊이와 방문 항목 수를 제한하고 심볼릭 링크를 따라가지 않는다.
 
