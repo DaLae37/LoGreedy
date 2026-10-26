@@ -1,0 +1,27 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "LoGreedy: jdk8",
+      "request": "launch",
+      "mainClass": "com.dalae37.logreedy.runtime.jdk8.Main",
+      "projectName": "logreedy-runtime-jdk8",
+      "args": "--help",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "preLaunchTask": "LoGreedy: legacy"
+    },
+    {
+      "type": "java",
+      "name": "LoGreedy: jdk21",
+      "request": "launch",
+      "mainClass": "com.dalae37.logreedy.runtime.jdk21.Main",
+      "projectName": "logreedy-runtime-jdk21",
+      "args": "--help",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "preLaunchTask": "LoGreedy: modern"
+    }
+  ]
+}

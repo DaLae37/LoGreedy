@@ -1,0 +1,22 @@
+.gradle/
+**/build/
+.classpath
+.project
+.settings/
+bin/
+.idea/
+*.iml
+.vscode/*.local.json
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
+
+# Local agent data and sample log inputs
+/data/
+/logs/
+
+# CI helper bytecode
+**/__pycache__/
+*.pyc
