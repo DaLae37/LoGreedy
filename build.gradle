@@ -59,7 +59,7 @@ project(':logreedy-core') {
     repositories { mavenCentral() }
     dependencies {
         testImplementation 'junit:junit:4.13.2'
-        testImplementation 'com.google.code.gson:gson:2.13.2'
+        testImplementation 'com.google.code.gson:gson:2.14.0'
     }
     tasks.named('compileTestJava') { options.release = 25 }
     tasks.named('test', Test) {
